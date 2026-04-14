@@ -53,16 +53,22 @@ view  ::label_asym_id="E"                # zoom to that heme
   <img src="docs/04_label_E_zoom.png" width="520" alt="label_asym_id E = heme of chain A">
 </p>
 
-### 2. Short `la_<label>` selectors (registered per-structure)
+### 2. Short `la_<label>` selectors (registered on open)
 
-Every unique `label_asym_id` in a newly opened structure is registered as a
-selector, so you can skip the attribute syntax:
+Every unique `label_asym_id` assigned to at least one residue in a newly
+opened structure gets a matching `la_<label>` selector (subject to the
+character restrictions noted under Limitations), so you can skip the
+attribute syntax:
 
 ```
 select la_E              # heme of α1 (same as ::label_asym_id="E")
 color  la_A dodger blue  # α1 protein
 hide   la_I target a     # hide the first waters, etc.
 ```
+
+Selectors are session-global: the same `la_E` matches residues across every
+open model carrying that label. Opening a second structure that shares
+labels reuses the existing selectors instead of duplicating them.
 
 ### 3. `labelcolor` — `color bychain` for label chains
 
@@ -135,10 +141,16 @@ echi run --script scripts/smoke.cxc
    (via `get_mmcif_tables_from_metadata`, falling back to re-reading the file
    with `get_cif_tables`) and builds a
    `(auth_asym_id, auth_seq_id, ins_code) → label_asym_id` map.
-4. Each residue gets its `label_asym_id` attribute set. For each unique label
-   seen, a `la_<label>` selector is registered via
-   `chimerax.core.commands.register_selector`. Non-mmCIF structures are
-   silently skipped.
+4. Each residue gets its `label_asym_id` attribute set. The key lookup is
+   dual-scheme — a parallel `(label_asym_id, label_seq_id, "")` entry is
+   stored alongside the auth entry so the same code works for structures
+   opened with `prefer_auth=false`.
+5. For every unique label assigned to at least one residue, a `la_<label>`
+   selector is registered via `chimerax.core.commands.register_selector`.
+   Registration is deduped across structures and skipped for labels that
+   would violate ChimeraX's selector-name rules. `uninstall()` deregisters
+   every selector this bundle created. Non-mmCIF structures are silently
+   skipped.
 
 ## Limitations
 
