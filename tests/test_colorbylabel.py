@@ -1,4 +1,4 @@
-"""Unit tests for the ``labelcolor`` command."""
+"""Unit tests for the ``colorbylabel`` command."""
 
 import sys
 from unittest.mock import MagicMock
@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture
 def stubbed_chimerax(monkeypatch):
-    """Stub chimerax modules imported by ``labelcolor`` at call time."""
+    """Stub chimerax modules imported by ``colorbylabel`` at call time."""
     fake_colors = MagicMock()
 
     def _chain_colors(ids):
@@ -71,21 +71,21 @@ def _residues_carrier(labels, initial_alpha=200):
     return carrier
 
 
-def test_labelcolor_assigns_distinct_rgb_per_label(stubbed_chimerax):
+def test_colorbylabel_assigns_distinct_rgb_per_label(stubbed_chimerax):
     import commands as commands_mod
 
     session = MagicMock()
     atoms = _ColorCarrier(["A", "A", "E", "E"])
     objects = MagicMock(atoms=atoms, residues=_residues_carrier([]))
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     assert not (atoms.colors[0, :3] == atoms.colors[2, :3]).all()
     assert (atoms.colors[0, :3] == atoms.colors[1, :3]).all()
     assert (atoms.colors[2, :3] == atoms.colors[3, :3]).all()
 
 
-def test_labelcolor_preserves_alpha_on_atoms(stubbed_chimerax):
+def test_colorbylabel_preserves_alpha_on_atoms(stubbed_chimerax):
     """Recoloring must leave the alpha column untouched for every atom."""
     import commands as commands_mod
 
@@ -94,13 +94,13 @@ def test_labelcolor_preserves_alpha_on_atoms(stubbed_chimerax):
     atoms.colors[:, 3] = np.array([128, 200], dtype=np.uint8)
     objects = MagicMock(atoms=atoms, residues=_residues_carrier([]))
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     assert atoms.colors[0, 3] == 128
     assert atoms.colors[1, 3] == 200
 
 
-def test_labelcolor_writes_ribbon_and_ring_colors(stubbed_chimerax):
+def test_colorbylabel_writes_ribbon_and_ring_colors(stubbed_chimerax):
     """The residue-side ribbon/ring colors must be recolored too."""
     import commands as commands_mod
 
@@ -109,7 +109,7 @@ def test_labelcolor_writes_ribbon_and_ring_colors(stubbed_chimerax):
     residues = _residues_carrier(["A", "E"])
     objects = MagicMock(atoms=atoms, residues=residues)
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     # Ribbon colors got a palette entry per residue (different per label)
     assert not (residues.ribbon_colors[0, :3] == residues.ribbon_colors[1, :3]).all()
@@ -119,7 +119,7 @@ def test_labelcolor_writes_ribbon_and_ring_colors(stubbed_chimerax):
     assert (residues.ring_colors[:, 3] == 200).all()
 
 
-def test_labelcolor_skips_ribbon_branch_when_residues_empty(stubbed_chimerax):
+def test_colorbylabel_skips_ribbon_branch_when_residues_empty(stubbed_chimerax):
     """No crash when the selection has no residues of its own."""
     import commands as commands_mod
 
@@ -129,20 +129,20 @@ def test_labelcolor_skips_ribbon_branch_when_residues_empty(stubbed_chimerax):
     empty = _residues_carrier([])
     objects = MagicMock(atoms=atoms, residues=empty)
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     # Atoms still colored
     assert not (atoms.colors[0, :3] == 255).all()
 
 
-def test_labelcolor_skips_atoms_without_label(stubbed_chimerax):
+def test_colorbylabel_skips_atoms_without_label(stubbed_chimerax):
     import commands as commands_mod
 
     session = MagicMock()
     atoms = _ColorCarrier(["A", "", None, "E"])
     objects = MagicMock(atoms=atoms, residues=_residues_carrier([]))
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     # Unlabeled atoms keep default RGB (255); labeled atoms are recolored
     assert (atoms.colors[1, :3] == 255).all()
@@ -151,7 +151,7 @@ def test_labelcolor_skips_atoms_without_label(stubbed_chimerax):
     assert not (atoms.colors[3, :3] == 255).all()
 
 
-def test_labelcolor_warns_when_no_atoms(stubbed_chimerax):
+def test_colorbylabel_warns_when_no_atoms(stubbed_chimerax):
     import commands as commands_mod
 
     session = MagicMock()
@@ -159,24 +159,24 @@ def test_labelcolor_warns_when_no_atoms(stubbed_chimerax):
     atoms.__len__ = lambda self: 0
     objects = MagicMock(atoms=atoms)
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     session.logger.warning.assert_called_once()
 
 
-def test_labelcolor_warns_when_no_labels(stubbed_chimerax):
+def test_colorbylabel_warns_when_no_labels(stubbed_chimerax):
     import commands as commands_mod
 
     session = MagicMock()
     atoms = _ColorCarrier(["", "", None])
     objects = MagicMock(atoms=atoms, residues=_residues_carrier([]))
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     session.logger.warning.assert_called_once()
 
 
-def test_labelcolor_defaults_objects_to_all_objects(stubbed_chimerax):
+def test_colorbylabel_defaults_objects_to_all_objects(stubbed_chimerax):
     _, fake_objects = stubbed_chimerax
     import commands as commands_mod
 
@@ -186,12 +186,12 @@ def test_labelcolor_defaults_objects_to_all_objects(stubbed_chimerax):
     )
 
     session = MagicMock()
-    commands_mod.labelcolor(session)
+    commands_mod.colorbylabel(session)
 
     fake_objects.all_objects.assert_called_once_with(session)
 
 
-def test_labelcolor_handles_palette_shape_mismatch(stubbed_chimerax):
+def test_colorbylabel_handles_palette_shape_mismatch(stubbed_chimerax):
     """A broken palette should warn and leave colors unchanged."""
     fake_colors, _ = stubbed_chimerax
     fake_colors.chain_colors = lambda ids: np.zeros((0, 4), dtype=np.uint8)
@@ -203,7 +203,7 @@ def test_labelcolor_handles_palette_shape_mismatch(stubbed_chimerax):
     original = atoms.colors.copy()
     objects = MagicMock(atoms=atoms, residues=_residues_carrier([]))
 
-    commands_mod.labelcolor(session, objects)
+    commands_mod.colorbylabel(session, objects)
 
     session.logger.warning.assert_called_once()
     assert (atoms.colors == original).all()
