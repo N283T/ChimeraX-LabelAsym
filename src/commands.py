@@ -1,11 +1,15 @@
 """ChimeraX commands for the LabelAsym bundle.
 
-Currently provides ``labelcolor``, a ``color bychain`` analogue that
+Currently provides ``colorbylabel``, a ``color bychain`` analogue that
 groups residues by ``label_asym_id`` instead of ``auth_asym_id``. The
 default palette matches ``chimerax.atomic.colors.chain_colors`` so heme
 chains (label E/F/G/H in 4hhb) get visibly distinct colors from their
 associated proteins (label A/B/C/D) while preserving the same palette
 semantics users already know from ``color bychain``.
+
+Named ``colorbylabel`` (not ``labelcolor``) because ChimeraX already has
+a first-class concept of 3D text "labels" — the name avoids a collision
+with that mental model.
 """
 
 from __future__ import annotations
@@ -51,7 +55,7 @@ def _apply_rgb(labels, mask, palette_fn, current_rgba):
     return out
 
 
-def labelcolor(session, objects=None):
+def colorbylabel(session, objects=None):
     """Color atoms, ribbons, and rings by ``label_asym_id``."""
     import numpy as np
 
@@ -64,7 +68,7 @@ def labelcolor(session, objects=None):
     atoms = objects.atoms
     if len(atoms) == 0:
         session.logger.warning(
-            "[label-asym] labelcolor: selection contains no atoms; "
+            "[label-asym] colorbylabel: selection contains no atoms; "
             "check your atom specifier or open a structure first"
         )
         return
@@ -73,7 +77,7 @@ def labelcolor(session, objects=None):
     atom_mask = np.array([bool(lbl) for lbl in atom_labels], dtype=bool)
     if not atom_mask.any():
         session.logger.warning(
-            f"[label-asym] labelcolor: none of {len(atoms)} atoms have a "
+            f"[label-asym] colorbylabel: none of {len(atoms)} atoms have a "
             f"label_asym_id attribute. Either the structure was not opened "
             f"from mmCIF, or atom_site metadata was missing — see earlier "
             f"[label-asym] log messages for details."
@@ -84,7 +88,7 @@ def labelcolor(session, objects=None):
         atoms.colors = _apply_rgb(atom_labels, atom_mask, chain_colors, atoms.colors)
     except (ValueError, IndexError) as exc:
         session.logger.warning(
-            f"[label-asym] labelcolor: palette application failed ({exc}); "
+            f"[label-asym] colorbylabel: palette application failed ({exc}); "
             f"atom colors unchanged"
         )
         return
@@ -103,7 +107,7 @@ def labelcolor(session, objects=None):
                 )
             except (ValueError, IndexError) as exc:
                 session.logger.warning(
-                    f"[label-asym] labelcolor: ribbon/ring color update "
+                    f"[label-asym] colorbylabel: ribbon/ring color update "
                     f"failed ({exc}); atom colors applied but cartoons may "
                     f"not match"
                 )
@@ -111,16 +115,16 @@ def labelcolor(session, objects=None):
     n_atoms = int(atom_mask.sum())
     unique = len({lbl for lbl, m in zip(atom_labels, atom_mask) if m})
     session.logger.info(
-        f"[label-asym] labelcolor: colored {n_atoms} atoms across {unique} label chains"
+        f"[label-asym] colorbylabel: colored {n_atoms} atoms across {unique} label chains"
     )
 
 
 def register_commands(logger):
-    """Register the ``labelcolor`` command with ChimeraX's command registry."""
+    """Register the ``colorbylabel`` command with ChimeraX's command registry."""
     from chimerax.core.commands import CmdDesc, ObjectsArg, register
 
     desc = CmdDesc(
         optional=[("objects", ObjectsArg)],
         synopsis="Color atoms by mmCIF label_asym_id (bychain analogue)",
     )
-    register("labelcolor", desc, labelcolor, logger=logger)
+    register("colorbylabel", desc, colorbylabel, logger=logger)

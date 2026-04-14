@@ -26,7 +26,7 @@ select la_A
 info selection level residue
 
 # Color by label_asym_id using the color-bychain analogue
-labelcolor
+colorbylabel
 cartoon
 
 log show

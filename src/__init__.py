@@ -6,7 +6,7 @@ attribute, plus dynamic selectors ``la_<label>``. Users can select via::
 
     select ::label_asym_id="A"   # attribute form (any label)
     select la_E                   # short form (registered on open)
-    labelcolor                    # color atoms by label_asym_id
+    colorbylabel                  # color atoms by label_asym_id
 """
 
 from chimerax.core.toolshed import BundleAPI

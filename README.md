@@ -70,19 +70,19 @@ Selectors are session-global: the same `la_E` matches residues across every
 open model carrying that label. Opening a second structure that shares
 labels reuses the existing selectors instead of duplicating them.
 
-### 3. `labelcolor` — `color bychain` for label chains
+### 3. `colorbylabel` — `color bychain` for label chains
 
 Colors atoms, cartoons, and rings by `label_asym_id` using the same palette as
 `color bychain`, so hemes (label E/F/G/H) get a colour distinct from their
 associated proteins (label A/B/C/D):
 
 ```
-labelcolor            # color everything by label_asym_id
-labelcolor #1/A       # restrict to one author chain
+colorbylabel            # color everything by label_asym_id
+colorbylabel #1/A       # restrict to one author chain
 ```
 
 <p align="center">
-  <img src="docs/06_labelcolor_4hhb.png" width="520" alt="labelcolor 4hhb: protein and heme chains get distinct colors">
+  <img src="docs/06_colorbylabel_4hhb.png" width="520" alt="colorbylabel 4hhb: protein and heme chains get distinct colors">
 </p>
 
 The built-in `/A` syntax continues to work as before (author chain).
@@ -107,7 +107,7 @@ color ::label_asym_id="H" cyan
 Note: quotes around single-letter values are required in the attribute form
 (e.g. `::label_asym_id="A"`). Without the quotes, ChimeraX's atom-spec parser
 reads single letters such as `A`, `C`, or `G` as residue-code tokens and
-rejects the selection. The `la_<label>` short selectors and `labelcolor`
+rejects the selection. The `la_<label>` short selectors and `colorbylabel`
 command have no such quoting requirement.
 
 ## Build & Install
