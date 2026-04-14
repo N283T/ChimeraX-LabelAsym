@@ -22,10 +22,12 @@ from __future__ import annotations
 from pathlib import Path
 
 ATTR_NAME = "label_asym_id"
+SELECTOR_PREFIX = "la_"
 _TEXT_MMCIF_SUFFIXES = frozenset({".cif", ".mmcif"})
 _REGISTERED = False
 _HANDLER = None
 _MMCIF_WARNING_LOGGED = False
+_REGISTERED_SELECTORS: set[str] = set()
 
 
 def _log_mmcif_missing_once(session) -> None:
@@ -155,6 +157,71 @@ def _build_mapping(atom_site) -> tuple[dict, dict]:
     return mapping, stats
 
 
+def _is_valid_selector_suffix(label: str) -> bool:
+    """``register_selector`` rejects names that start non-alpha or contain
+    punctuation outside ``-+_``. Our prefix ``la_`` already passes the lead
+    check; this validates the remainder before we try to register a name
+    like ``la_<label>`` for unusual mmCIF ids (e.g. ``HOH1``, ``Aa``).
+    """
+    if not label:
+        return False
+    return all(c.isalnum() or c in "-+_" for c in label)
+
+
+def _make_selector_callback(label: str):
+    def _select(session, models, results):
+        from chimerax.atomic import AtomicStructure
+
+        for m in models:
+            if not isinstance(m, AtomicStructure):
+                continue
+            for res in m.residues:
+                if getattr(res, ATTR_NAME, None) == label:
+                    results.add_atoms(res.atoms, bonds=True)
+
+    return _select
+
+
+def _register_selectors_for_labels(session, labels) -> None:
+    import traceback
+
+    from chimerax.core.commands import register_selector
+
+    for lbl in labels:
+        if not _is_valid_selector_suffix(lbl):
+            continue
+        name = f"{SELECTOR_PREFIX}{lbl}"
+        if name in _REGISTERED_SELECTORS:
+            continue
+        try:
+            register_selector(
+                name,
+                _make_selector_callback(lbl),
+                session.logger,
+                desc=f"residues with label_asym_id={lbl}",
+            )
+        except Exception:
+            tb = traceback.format_exc()
+            session.logger.warning(
+                f"[label-asym] failed to register selector {name}:\n{tb}"
+            )
+            continue
+        _REGISTERED_SELECTORS.add(name)
+
+
+def _deregister_all_selectors(session) -> None:
+    if not _REGISTERED_SELECTORS:
+        return
+    from chimerax.core.commands import deregister_selector
+
+    for name in list(_REGISTERED_SELECTORS):
+        try:
+            deregister_selector(name, session.logger)
+        except Exception:
+            pass
+    _REGISTERED_SELECTORS.clear()
+
+
 def _populate(session, structure) -> None:
     from chimerax.atomic import AtomicStructure
 
@@ -183,6 +250,7 @@ def _populate(session, structure) -> None:
         return
 
     hit = 0
+    seen_labels: set[str] = set()
     for res in structure.residues:
         ins = res.insertion_code or ""
         lbl = mapping.get(("auth", res.chain_id, res.number, ins))
@@ -190,7 +258,11 @@ def _populate(session, structure) -> None:
             lbl = mapping.get(("label", res.chain_id, res.number, ins))
         if lbl is not None:
             setattr(res, ATTR_NAME, lbl)
+            seen_labels.add(lbl)
             hit += 1
+
+    if seen_labels:
+        _register_selectors_for_labels(session, seen_labels)
 
     total = structure.num_residues
     if stats["skipped_auth_seq"]:
@@ -239,6 +311,7 @@ def install(session) -> None:
 
 def uninstall(session) -> None:
     global _HANDLER
+    _deregister_all_selectors(session)
     if _HANDLER is None:
         return
     try:

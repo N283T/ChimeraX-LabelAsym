@@ -4,8 +4,8 @@ build-backend = "chimerax.bundle_builder.cx_pep517"
 
 [project]
 name = "ChimeraX-LabelAsym"
-version = "0.1.0"
-description = "Expose mmCIF label_asym_id as a residue attribute for selection"
+version = "0.2.0"
+description = "Expose mmCIF label_asym_id via residue attribute, la_&lt;label&gt; selectors, and labelcolor command"
 license = { text = "MIT" }
 dynamic = ["classifiers", "requires-python"]
 
@@ -20,6 +20,10 @@ min-session-version = 1
 max-session-version = 1
 categories = ["Structure Analysis"]
 classifiers = []
+
+[chimerax.command.labelcolor]
+category = "Structure Analysis"
+description = "Color atoms by mmCIF label_asym_id (bychain analogue)"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

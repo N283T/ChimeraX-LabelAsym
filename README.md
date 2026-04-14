@@ -37,7 +37,13 @@ After installing the bundle, any structure opened from mmCIF metadata gets a
 ```
 open 4hhb format mmcif
 # log: [label-asym] 4hhb: assigned label_asym_id to 801/801 residues
+```
 
+The bundle provides three ways to work with label chains:
+
+### 1. Attribute selector (any label value)
+
+```
 color ::label_asym_id="A" dodger blue    # just the α1 protein
 color ::label_asym_id="E" orange         # just its heme
 view  ::label_asym_id="E"                # zoom to that heme
@@ -47,9 +53,35 @@ view  ::label_asym_id="E"                # zoom to that heme
   <img src="docs/04_label_E_zoom.png" width="520" alt="label_asym_id E = heme of chain A">
 </p>
 
+### 2. Short `la_<label>` selectors (registered per-structure)
+
+Every unique `label_asym_id` in a newly opened structure is registered as a
+selector, so you can skip the attribute syntax:
+
+```
+select la_E              # heme of α1 (same as ::label_asym_id="E")
+color  la_A dodger blue  # α1 protein
+hide   la_I target a     # hide the first waters, etc.
+```
+
+### 3. `labelcolor` — `color bychain` for label chains
+
+Colors atoms, cartoons, and rings by `label_asym_id` using the same palette as
+`color bychain`, so hemes (label E/F/G/H) get a colour distinct from their
+associated proteins (label A/B/C/D):
+
+```
+labelcolor            # color everything by label_asym_id
+labelcolor #1/A       # restrict to one author chain
+```
+
+<p align="center">
+  <img src="docs/06_labelcolor_4hhb.png" width="520" alt="labelcolor 4hhb: protein and heme chains get distinct colors">
+</p>
+
 The built-in `/A` syntax continues to work as before (author chain).
 
-### Every entity in its own colour
+### Every entity in its own colour (manual)
 
 ```
 color ::label_asym_id="A" dodger blue
@@ -66,9 +98,11 @@ color ::label_asym_id="H" cyan
   <img src="docs/05_all_labels.png" width="520" alt="all label_asym_id groups coloured independently">
 </p>
 
-Note: quotes around single-letter values are required (e.g. `="A"`). Without
-the quotes, ChimeraX's atom-spec parser reads single letters such as `A`,
-`C`, or `G` as residue-code tokens and rejects the selection.
+Note: quotes around single-letter values are required in the attribute form
+(e.g. `::label_asym_id="A"`). Without the quotes, ChimeraX's atom-spec parser
+reads single letters such as `A`, `C`, or `G` as residue-code tokens and
+rejects the selection. The `la_<label>` short selectors and `labelcolor`
+command have no such quoting requirement.
 
 ## Build & Install
 
@@ -101,15 +135,21 @@ echi run --script scripts/smoke.cxc
    (via `get_mmcif_tables_from_metadata`, falling back to re-reading the file
    with `get_cif_tables`) and builds a
    `(auth_asym_id, auth_seq_id, ins_code) → label_asym_id` map.
-4. Each residue gets its `label_asym_id` attribute set. Non-mmCIF structures
-   are silently skipped.
+4. Each residue gets its `label_asym_id` attribute set. For each unique label
+   seen, a `la_<label>` selector is registered via
+   `chimerax.core.commands.register_selector`. Non-mmCIF structures are
+   silently skipped.
 
 ## Limitations
 
 - Only mmCIF-derived structures are annotated. PDB-format input does not carry
   `label_asym_id`.
-- Currently no short syntax such as `/A'` — that would require extending
-  ChimeraX's atom-spec parser.
+- `la_<label>` selectors require labels composed of alphanumerics, `-`, `+`,
+  or `_`. Unusual labels containing other punctuation are still reachable via
+  the attribute form (`::label_asym_id="..."`).
+- No `/A'` grammar extension — ChimeraX's atom-spec parser is not extensible
+  from a bundle, so attribute selectors and `la_<label>` short names are used
+  instead.
 
 ## License
 
