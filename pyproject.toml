@@ -1,0 +1,22 @@
+[build-system]
+requires = ["ChimeraX-BundleBuilder"]
+build-backend = "chimerax.bundle_builder.cx_pep517"
+
+[project]
+name = "ChimeraX-LabelAsym"
+version = "0.1.0"
+description = "Expose mmCIF label_asym_id as a residue attribute for selection"
+license = { text = "MIT" }
+dynamic = ["classifiers", "requires-python"]
+
+[project.urls]
+# Homepage = "https://github.com/yourusername/ChimeraX-LabelAsym"
+
+[chimerax]
+package = "chimerax.label_asym"
+custom-init = true
+pure = true
+min-session-version = 1
+max-session-version = 1
+categories = ["Structure Analysis"]
+classifiers = []

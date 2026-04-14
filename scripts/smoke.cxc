@@ -1,0 +1,24 @@
+# Smoke test for ChimeraX-LabelAsym
+# 4HHB: hemoglobin tetramer. Protein chains A/B/C/D share auth_asym_id
+# with their associated heme groups, but have distinct label_asym_id
+# (protein A = label A, heme of A = label E, etc.)
+
+open 4hhb format mmcif
+
+# Confirm residue attribute was assigned
+info residues /A attribute label_asym_id
+info residues :HEM attribute label_asym_id
+
+# The first heme should be label_asym_id=E (not A)
+select ::label_asym_id="E"
+info selection level residue
+
+# Compare: select via auth_asym_id (classic) should pick protein+heme of A
+select /A
+info selection level residue
+
+# Select only the protein part of chain A (label_asym_id=A)
+select ::label_asym_id="A"
+info selection level residue
+
+log show
