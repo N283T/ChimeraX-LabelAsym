@@ -112,9 +112,43 @@ command have no such quoting requirement.
 
 ## Build & Install
 
+### Option A — ChimeraX's built-in `devel` / `toolshed` commands
+
+Build a wheel directly from this source tree (ChimeraX does the packaging):
+
+```bash
+# From the repo root. Writes the wheel to ./dist/
+/Applications/ChimeraX-*.app/Contents/MacOS/ChimeraX --nogui --exit \
+    --cmd "devel build ."
+```
+
+Then install the wheel into your ChimeraX profile:
+
+```bash
+/Applications/ChimeraX-*.app/Contents/MacOS/ChimeraX --nogui --exit \
+    --cmd "toolshed install dist/chimerax_labelasym-*.whl"
+```
+
+Or do both in one step from an already-running ChimeraX (Tools → Log,
+or the command line in the GUI):
+
+```
+devel install /path/to/ChimeraX-LabelAsym
+```
+
+Restart ChimeraX afterward — `custom-init` runs at startup.
+
+### Option B — [echidna](https://github.com/N283T/echidna)
+
+[Echidna](https://github.com/N283T/echidna) is a Rust CLI that wraps the
+above `devel` / `toolshed` invocations (auto-detects `CHIMERAX_PATH`, builds
+and installs in one command, launches ChimeraX with the bundle):
+
 ```bash
 echi build
 echi install
+# or all at once:
+echi run
 ```
 
 ## Test
