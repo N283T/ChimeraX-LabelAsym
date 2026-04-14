@@ -14,8 +14,14 @@ def reset_state():
     hook._REGISTERED = False
     hook._HANDLER = None
     hook._MMCIF_WARNING_LOGGED = False
+    hook._REGISTERED_SELECTORS.clear()
+    hook._FAILED_SELECTORS.clear()
+    hook._SKIPPED_INVALID_LABELS.clear()
     yield
     hook._HANDLER = None
+    hook._REGISTERED_SELECTORS.clear()
+    hook._FAILED_SELECTORS.clear()
+    hook._SKIPPED_INVALID_LABELS.clear()
 
 
 def _fake_chimerax_modules(monkeypatch):

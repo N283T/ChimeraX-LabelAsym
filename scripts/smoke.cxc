@@ -9,8 +9,12 @@ open 4hhb format mmcif
 info residues /A attribute label_asym_id
 info residues :HEM attribute label_asym_id
 
-# The first heme should be label_asym_id=E (not A)
+# Attribute-form selector: heme of chain A should be label_asym_id=E
 select ::label_asym_id="E"
+info selection level residue
+
+# Short-form selector registered by the bundle (la_<label>)
+select la_E
 info selection level residue
 
 # Compare: select via auth_asym_id (classic) should pick protein+heme of A
@@ -18,7 +22,11 @@ select /A
 info selection level residue
 
 # Select only the protein part of chain A (label_asym_id=A)
-select ::label_asym_id="A"
+select la_A
 info selection level residue
+
+# Color by label_asym_id using the color-bychain analogue
+labelcolor
+cartoon
 
 log show
