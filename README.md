@@ -66,8 +66,9 @@ color ::label_asym_id="H" cyan
   <img src="docs/05_all_labels.png" width="520" alt="all label_asym_id groups coloured independently">
 </p>
 
-Note: quotes around single-letter values are required (e.g. `="A"`) to stop
-ChimeraX's parser from treating them as keywords.
+Note: quotes around single-letter values are required (e.g. `="A"`). Without
+the quotes, ChimeraX's atom-spec parser reads single letters such as `A`,
+`C`, or `G` as residue-code tokens and rejects the selection.
 
 ## Build & Install
 
@@ -77,6 +78,14 @@ echi install
 ```
 
 ## Test
+
+Unit tests (pure Python, no ChimeraX runtime required):
+
+```bash
+uv run --with pytest --no-project pytest
+```
+
+Integration smoke test (requires ChimeraX):
 
 ```bash
 echi run --script scripts/smoke.cxc

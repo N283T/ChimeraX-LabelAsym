@@ -20,3 +20,6 @@ min-session-version = 1
 max-session-version = 1
 categories = ["Structure Analysis"]
 classifiers = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
